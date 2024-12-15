@@ -6,7 +6,7 @@ class Post:
     date: datetime
     url: str
     text: str
-    links: list[str]
+    # links: list[str]
     likes: int
     replies: int
     reposts: int
