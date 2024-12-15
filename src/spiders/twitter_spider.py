@@ -14,9 +14,8 @@ class TwitterSpider:
     def login(self, browser: Browser):
         try:
             page = browser.new_page()
-            page.goto(self.LOGIN_URL)
+            page.goto(self.LOGIN_URL, wait_until="networkidle")
 
-            page.wait_for_selector('input[name="text"]')
             page.fill('input[name="text"]', self.user.email)
             page.click('text=Next')
             page.wait_for_timeout(1000)
@@ -52,8 +51,7 @@ class TwitterSpider:
             self.login(browser)
 
             page = browser.new_page()
-            page.goto(self.generate_search_url(search.keyword, search.account))
-            page.wait_for_timeout(2000)
+            page.goto(self.generate_search_url(search.keyword, search.account), wait_until="networkidle")
 
             browser.close()
 
