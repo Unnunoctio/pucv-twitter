@@ -1,4 +1,4 @@
-from playwright.sync_api import Browser, sync_playwright
+from playwright.sync_api import Page, sync_playwright
 
 from classes.post import Post
 from classes.search import Search
@@ -11,9 +11,8 @@ class TwitterSpider:
     def __init__(self, user: User):
         self.user = user
 
-    def login(self, browser: Browser):
+    def login(self, page: Page):
         try:
-            page = browser.new_page()
             page.goto(self.LOGIN_URL, wait_until="networkidle")
 
             page.fill('input[name="text"]', self.user.email)
@@ -31,10 +30,8 @@ class TwitterSpider:
                 page.fill('input[name="password"]', self.user.password)
                 page.click('text=Log in')
 
-            page.wait_for_timeout(3000)
             return
         except Exception as e:
-            browser.close()
             raise Exception(e)
 
     def generate_search_url(self, keyword: str | None, account: str | None) -> str:
@@ -47,12 +44,19 @@ class TwitterSpider:
 
     def get_posts(self, search: Search) -> list[Post]:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
-            self.login(browser)
+            try:
+                browser = p.chromium.launch(headless=False)
+                page = browser.new_page()
+                self.login(page)
 
-            page = browser.new_page()
-            page.goto(self.generate_search_url(search.keyword, search.account), wait_until="networkidle")
+                page.wait_for_timeout(5000)
+                page.goto(self.generate_search_url(search.keyword, search.account))
 
-            browser.close()
+                page.wait_for_timeout(5000)
+                page.screenshot(path="screenshot.png")
+            except Exception as e:
+                raise Exception(e)
+            finally:
+                browser.close()
 
             return []
