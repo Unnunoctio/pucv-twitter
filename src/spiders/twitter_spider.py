@@ -47,7 +47,7 @@ class TwitterSpider:
 
     def get_posts(self, search: Search) -> list[Post]:
         with sync_playwright() as p:
-            browser = p.chromium.launch()
+            browser = p.chromium.launch(headless=False)
             self.login(browser)
 
             page = browser.new_page()
