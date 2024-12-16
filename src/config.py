@@ -4,6 +4,14 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
+EMAIL_ACCOUNT = os.getenv("EMAIL_ACCOUNT")
+if EMAIL_ACCOUNT == "":
+    EMAIL_ACCOUNT = None
+
+EMAIL_APP_KEY = os.getenv("EMAIL_APP_KEY")
+if EMAIL_APP_KEY == "":
+    EMAIL_APP_KEY = None
+
 TWITTER_USERNAME = os.getenv("TWITTER_USERNAME")
 if TWITTER_USERNAME == "":
     TWITTER_USERNAME = None
@@ -33,6 +41,6 @@ SEARCH_END=os.getenv("SEARCH_END") # "aaaa-mm-dd"
 if SEARCH_END == "":
     SEARCH_END = None
 
-SEND_EMAIL=os.getenv("SEND_EMAIL")
-if SEND_EMAIL == "":
-    SEND_EMAIL = None
+EMAIL_SEND=os.getenv("EMAIL_SEND")
+if EMAIL_SEND == "":
+    EMAIL_SEND = None
