@@ -60,11 +60,24 @@ class TwitterSpider:
         url_post = self.X_COM_URL + url
 
         # TODO: Text Block
-        text = article.query_selector("div[data-testid=tweetText]").text_content()
+        # TEXT
+        text_div = article.query_selector("div[data-testid=tweetText]")
+        if text_div is not None:
+            text = text_div.text_content()
+
+        # LINKS
+        links = list[str]()
+        if text_div is not None:
+            text_links = text_div.query_selector_all("a")
+            for text_link in text_links:
+                new_link = text_link.get_attribute("href")
+                if new_link[0] == "/":
+                    links.append(self.X_COM_URL + new_link)
+                else:
+                    links.append(new_link)
 
         # TODO: Wrapper Block
         wrapper_div = article.query_selector("div[data-testid='card.wrapper']")
-        links = list[str]()
         if wrapper_div is not None:
             wrapper_links = wrapper_div.query_selector_all("a")
             for wrapper_link in wrapper_links:
@@ -102,9 +115,10 @@ class TwitterSpider:
         return Post(username=username, account=account, date=date, url=url_post, text=text, links=links, likes=likes, replies=replies, reposts=reposts, views=views)
 
     def get_posts(self, search: Search) -> list[Post]:
+        print("Obteniendo posts...")
         with sync_playwright() as p:
             try:
-                browser = p.chromium.launch(headless=False)
+                browser = p.chromium.launch(headless=True)
                 page = browser.new_page()
 
                 self.login(page)
@@ -125,7 +139,6 @@ class TwitterSpider:
                     # TODO: Detectar si paro de obtener información
                     retry_button = page.locator("button:has-text('Retry')")
                     if retry_button.is_visible():
-                        print("Retry button visible")
                         page.wait_for_timeout(10*60000) # 10 minutos
                         retry_button.click()
                         retry_count -= 1
