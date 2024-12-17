@@ -156,7 +156,7 @@ class TwitterSpider:
                         if new_post.date < search.start_date:
                             flag = False
                             break
-                        elif new_post.date <= search.end_date:
+                        elif new_post.date <= (search.end_date + timedelta(days=1)):
                             all_posts.append(new_post)
                             url_posts.add(new_post.url)
 
