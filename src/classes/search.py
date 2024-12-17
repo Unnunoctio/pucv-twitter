@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import pytz
+
 
 class Search:
     keyword: str | None
@@ -21,20 +23,24 @@ class Search:
 
         try:
             self.start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            self.start_date = self.start_date.replace(tzinfo=pytz.utc)
         except Exception:
             raise ValueError(f"Error: Fecha de inicio '{start_date}' no válida, su formato es: aaaa-mm-dd")
 
         # Validar Fecha de término
         if end_date is None:
             self.end_date = datetime.now()
+            self.end_date = self.end_date.replace(tzinfo=pytz.utc)
         else:
             try:
                 self.end_date = datetime.strptime(end_date, "%Y-%m-%d")
+                self.end_date = self.end_date.replace(tzinfo=pytz.utc)
             except Exception:
                 raise ValueError(f"Error: Fecha de término '{end_date}' no válida, su formato es: aaaa-mm-dd")
 
         # Validar fechas
         current_date = datetime.now()
+        current_date = current_date.replace(tzinfo=pytz.utc)
         if self.start_date > current_date:
             raise ValueError("Error: La fecha de inicio no puede ser mayor que la fecha actual")
         if self.end_date < self.start_date:

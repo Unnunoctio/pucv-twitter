@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import pytz
+
 
 class Post:
     username: str
@@ -16,7 +18,12 @@ class Post:
     def __init__(self, username: str, account: str, date: str, url: str, text: str, links: list[str], likes: int, replies: int, reposts: int, views: int):
         self.username = username
         self.account = account
-        self.date = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+        date_utc = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+        chilean_timezone = pytz.timezone("America/Santiago")
+        date_utc = date_utc.replace(tzinfo=pytz.utc)
+        self.date = date_utc.astimezone(chilean_timezone)
+
         self.url = url
         self.text = text
         self.links = links
