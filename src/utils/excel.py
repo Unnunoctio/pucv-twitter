@@ -1,5 +1,9 @@
-from classes.post import Post
+import os
+
 from openpyxl import Workbook
+
+from classes.post import Post
+
 
 def write_excel(file_name: str, data: list[Post]):
     try:
@@ -15,4 +19,13 @@ def write_excel(file_name: str, data: list[Post]):
         wb.close()
     except Exception:
         raise Exception("Error: No se pudo crear el archivo en Excel")
+    
+def delete_excel(file_name: str):
+    try:
+        if os.path.exists(file_name):
+            os.remove(file_name)
+        else:
+            print("Error: No se pudo encontrar el archivo en Excel")
+    except Exception:
+        raise Exception("Error: No se pudo eliminar el archivo en Excel")
     
