@@ -47,5 +47,5 @@ def send_email(destinatary: str, search: Search, excel_name: str):
         server.sendmail(EMAIL_ACCOUNT, destinatary, text)
         print("Correo electrónico enviado correctamente")
         server.quit()
-    except Exception:
-        raise Exception("Error: No se pudo enviar el correo electrónico")
+    except Exception as e:
+        raise Exception(f"Error: No se pudo enviar el correo electrónico, mensaje: {e}")

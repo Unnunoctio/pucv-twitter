@@ -4,43 +4,32 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
-EMAIL_ACCOUNT = os.getenv("EMAIL_ACCOUNT")
-if EMAIL_ACCOUNT == "":
-    EMAIL_ACCOUNT = None
+def get_env(key: str) -> str | None:
+    env = os.getenv(key)
+    return env if env != "" else None
 
-EMAIL_APP_KEY = os.getenv("EMAIL_APP_KEY")
-if EMAIL_APP_KEY == "":
-    EMAIL_APP_KEY = None
+# FILTROS
+SEARCH_KEYWORD = get_env("SEARCH_KEYWORD")
+SEARCH_ACCOUNT = get_env("SEARCH_ACCOUNT")
+SEARCH_START = get_env("SEARCH_START") # "aaaa-mm-dd"
+SEARCH_END = get_env("SEARCH_END") # "aaaa-mm-dd"
 
-TWITTER_USERNAME = os.getenv("TWITTER_USERNAME")
-if TWITTER_USERNAME == "":
-    TWITTER_USERNAME = None
+# GMAIL
+EMAIL_ACCOUNT = get_env("EMAIL_ACCOUNT")
+EMAIL_APP_KEY = get_env("EMAIL_APP_KEY")
+EMAIL_SEND = get_env("EMAIL_SEND")
 
-TWITTER_EMAIL = os.getenv("TWITTER_EMAIL")
-if TWITTER_EMAIL == "":
-    TWITTER_EMAIL = None
+# CUENTAS
+TWITTER_USERNAME_TEST1 = get_env("TWITTER_USERNAME_TEST1")
+TWITTER_EMAIL_TEST1 = get_env("TWITTER_EMAIL_TEST1")
+TWITTER_PASSWORD_TEST1 = get_env("TWITTER_PASSWORD_TEST1")
 
-TWITTER_PASSWORD = os.getenv("TWITTER_PASSWORD")
-if TWITTER_PASSWORD == "":
-    TWITTER_PASSWORD = None
+TWITTER_USERNAME_TEST2 = get_env("TWITTER_USERNAME_TEST2")
+TWITTER_EMAIL_TEST2 = get_env("TWITTER_EMAIL_TEST2")
+TWITTER_PASSWORD_TEST2 = get_env("TWITTER_PASSWORD_TEST2")
+
+TWITTER_USERNAME_TEST3 = get_env("TWITTER_USERNAME_TEST3")
+TWITTER_EMAIL_TEST3 = get_env("TWITTER_EMAIL_TEST3")
+TWITTER_PASSWORD_TEST3 = get_env("TWITTER_PASSWORD_TEST3")
 
 
-SEARCH_KEYWORD = os.getenv("SEARCH_KEYWORD")
-if SEARCH_KEYWORD == "":
-    SEARCH_KEYWORD = None
-
-SEARCH_ACCOUNT = os.getenv("SEARCH_ACCOUNT")
-if SEARCH_ACCOUNT == "":
-    SEARCH_ACCOUNT = None
-
-SEARCH_START=os.getenv("SEARCH_START") # "aaaa-mm-dd"
-if SEARCH_START == "":
-    SEARCH_START = None
-
-SEARCH_END=os.getenv("SEARCH_END") # "aaaa-mm-dd"
-if SEARCH_END == "":
-    SEARCH_END = None
-
-EMAIL_SEND=os.getenv("EMAIL_SEND")
-if EMAIL_SEND == "":
-    EMAIL_SEND = None

@@ -1,7 +1,8 @@
 import re
-from datetime import timedelta
+from datetime import datetime, timedelta
 
-from playwright.sync_api import ElementHandle, Page, sync_playwright
+import pytz
+from playwright.sync_api import Browser, BrowserContext, ElementHandle, Page
 
 from classes.post import Post
 from classes.search import Search
@@ -12,29 +13,48 @@ class TwitterSpider:
     X_COM_URL = "https://x.com"
     LOGIN_URL = "https://x.com/i/flow/login"
 
-    def __init__(self, user: User):
+    user: User
+    context: BrowserContext
+    page: Page
+
+    def __init__(self, browser: Browser, user: User):
         self.user = user
+        self.context = browser.new_context()
+        self.page = self.context.new_page()
 
-    def login(self, page: Page):
+        # LOGIN
+        self.login()
+
+    def login(self):
         try:
-            page.goto(self.LOGIN_URL, wait_until="networkidle")
+            self.page.goto(self.LOGIN_URL, wait_until="networkidle")
 
-            page.fill('input[name="text"]', self.user.email)
-            page.click('text=Next')
-            page.wait_for_timeout(1000)
+            self.page.fill('input[name="text"]', self.user.email)
+            self.page.click('text=Next')
+            self.page.wait_for_timeout(1000)
 
-            if page.is_visible('input[name="password"]'):
-                page.fill('input[name="password"]', self.user.password)
-                page.click('text=Log in')
+            if self.page.is_visible('text=Sorry, we could not find your account.'):
+                raise Exception(f"Error: El Correo: {self.user.email} no tiene una cuenta de Twitter")
+
+            if self.page.is_visible('input[name="password"]'):
+                self.page.fill('input[name="password"]', self.user.password)
+                self.page.click('text=Log in')
             else:
-                page.fill('input[name="text"]', self.user.username)
-                page.click('text=Next')
+                self.page.fill('input[name="text"]', self.user.username)
+                self.page.click('text=Next')
 
-                page.wait_for_selector('input[name="password"]')
-                page.fill('input[name="password"]', self.user.password)
-                page.click('text=Log in')
+                self.page.wait_for_timeout(1000)
+                if self.page.is_visible('text=Incorrect. Please try again.'):
+                    raise Exception(f"Error: El Usuario: {self.user.username}, de el Correo: {self.user.email} es incorrecto")
 
-            return
+                self.page.wait_for_selector('input[name="password"]')
+                self.page.fill('input[name="password"]', self.user.password)
+                self.page.click('text=Log in')
+
+                self.page.wait_for_timeout(1000)
+                if self.page.is_visible('text=Wrong password!'):
+                    raise Exception(f"Error: La Contraseña: {self.user.password}, de el Correo: {self.user.email} es incorrecta")
+
         except Exception as e:
             raise Exception(e)
 
@@ -62,6 +82,7 @@ class TwitterSpider:
         # TODO: Text Block
         # TEXT
         text_div = article.query_selector("div[data-testid=tweetText]")
+        text = ""
         if text_div is not None:
             text = text_div.text_content()
 
@@ -114,65 +135,49 @@ class TwitterSpider:
 
         return Post(username=username, account=account, date=date, url=url_post, text=text, links=links, likes=likes, replies=replies, reposts=reposts, views=views)
 
-    def get_posts(self, search: Search) -> list[Post]:
-        print("Obteniendo posts...")
-        with sync_playwright() as p:
-            try:
-                browser = p.chromium.launch(headless=True)
-                page = browser.new_page()
+    def get_posts_for_swap(self, search: Search) -> tuple[list[Post], bool, datetime]:
+        self.page.goto(self.generate_search_url(search))
+        self.page.wait_for_timeout(5000)
 
-                self.login(page)
-                page.wait_for_timeout(5000)
+        url_posts = set()
+        all_posts = list[Post]()
+        scroll_position = 0
+        scroll_step = 3000
 
-                page.goto(self.generate_search_url(search))
-                page.wait_for_timeout(3000)
+        while True:
+            # TODO: Detectar si paro de obtener información
+            retry_button = self.page.locator("button:has-text('Retry')")
+            if retry_button.is_visible():
+                if len(all_posts) == 0:
+                    return all_posts, False, search.end_date
                 
-                url_posts = set()
-                all_posts = list[Post]()
-                flag = True
-                retry_count = 5
-                scroll_position = 0
-                scroll_step = 3000
+                last_date_str = all_posts[-1].date.strftime("%Y-%m-%d")
+                last_date = datetime.strptime(last_date_str, "%Y-%m-%d")
+                last_date = last_date.replace(tzinfo=pytz.utc)
+                if last_date < search.start_date:
+                    return all_posts, False, search.start_date
+                else:
+                    return all_posts, False, last_date
+        
+            # TODO: Obtener los posts
+            articles = self.page.query_selector_all("article[data-testid=tweet]")
+            for article in articles:
+                new_post = self.get_post_by_article(article)
+                if new_post.url in url_posts:
+                    continue
 
+                if new_post.date < search.start_date:
+                    return all_posts, True, search.start_date
+                elif new_post.date <= (search.end_date + timedelta(days=1)):
+                    all_posts.append(new_post)
+                    url_posts.add(new_post.url)
+            
+            # TODO: Scroll
+            self.page.evaluate(f"window.scrollBy(0, {scroll_step})")
+            self.page.wait_for_timeout(2000)
 
-                while flag and retry_count > 0:
-                    # TODO: Detectar si paro de obtener información
-                    retry_button = page.locator("button:has-text('Retry')")
-                    if retry_button.is_visible():
-                        page.wait_for_timeout(10*60000) # 10 minutos
-                        retry_button.click()
-                        retry_count -= 1
-                        page.wait_for_timeout(2000)
-                        continue
-                    
-                    # TODO: Obtener los posts
-                    retry_count = 5
-                    articles = page.query_selector_all("article[data-testid=tweet]")
-                    for article in articles:
-                        new_post = self.get_post_by_article(article)
-                        if new_post.url in url_posts:
-                            continue
+            new_scroll_position = self.page.evaluate("window.pageYOffset + window.innerHeight;")
+            if new_scroll_position == scroll_position:
+                return all_posts, True, search.start_date
 
-                        if new_post.date < search.start_date:
-                            flag = False
-                            break
-                        elif new_post.date <= (search.end_date + timedelta(days=1)):
-                            all_posts.append(new_post)
-                            url_posts.add(new_post.url)
-
-                    # TODO: Scroll
-                    page.evaluate(f"window.scrollBy(0, {scroll_step})")
-                    page.wait_for_timeout(2000)
-
-                    new_scroll_position = page.evaluate("window.pageYOffset + window.innerHeight;")
-                    if new_scroll_position == scroll_position:
-                        flag = False
-                        break
-
-                    scroll_position = new_scroll_position
-
-                return all_posts
-            except Exception as e:
-                raise Exception(e)
-            finally:
-                browser.close()
+            scroll_position = new_scroll_position
