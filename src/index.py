@@ -27,6 +27,7 @@ from utils.email import send_email
 from utils.excel import write_excel, delete_excel
 
 try:
+    print("Iniciando...")
     start_time = time.time()
 
     # TODO: VALIDAR DATOS
@@ -39,7 +40,7 @@ try:
     # TODO: OBTENER POSTS
     all_posts = list[Post]()
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         
         # Para cambiar de usuario, se crean dos spiders
         spiders = [TwitterSpider(browser, user1), TwitterSpider(browser, user2), TwitterSpider(browser, user3)]
