@@ -47,7 +47,7 @@ try:
 
         print("Obteniendo posts...")
         swap = 0
-        new_search = Search(keyword=search.keyword, account=search.account, start_date=search.start_date.strftime("%Y-%m-%d"), end_date=search.end_date.strftime("%Y-%m-%d"))
+        new_search = Search(keyword=search.keyword, account=search.account, start_date=search.start_date.strftime("%d-%m-%Y"), end_date=search.end_date.strftime("%d-%m-%Y"))
 
         while True:
             # TODO: EJECUTAR SPIDER
@@ -64,7 +64,7 @@ try:
                 break
 
             # TODO: ACTUALIZAR EL SEARCH Y EL SWAP
-            new_search = Search(keyword=search.keyword, account=search.account, start_date=search.start_date.strftime("%Y-%m-%d"), end_date=last_date.strftime("%Y-%m-%d"))
+            new_search = Search(keyword=search.keyword, account=search.account, start_date=search.start_date.strftime("%d-%m-%Y"), end_date=last_date.strftime("%d-%m-%Y"))
             swap = (swap + 1) if swap < (len(spiders) - 1) else 0
 
             # TODO: SLEEP

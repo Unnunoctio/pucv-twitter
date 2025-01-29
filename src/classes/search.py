@@ -22,7 +22,7 @@ class Search:
             raise ValueError("Error: No se ha proporcionado una fecha de inicio")
 
         try:
-            self.start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            self.start_date = datetime.strptime(start_date, "%d-%m-%Y")
             self.start_date = self.start_date.replace(tzinfo=pytz.utc)
         except Exception:
             raise ValueError(f"Error: Fecha de inicio '{start_date}' no válida, su formato es: aaaa-mm-dd")
@@ -33,7 +33,7 @@ class Search:
             self.end_date = self.end_date.replace(tzinfo=pytz.utc)
         else:
             try:
-                self.end_date = datetime.strptime(end_date, "%Y-%m-%d")
+                self.end_date = datetime.strptime(end_date, "%d-%m-%Y")
                 self.end_date = self.end_date.replace(tzinfo=pytz.utc)
             except Exception:
                 raise ValueError(f"Error: Fecha de término '{end_date}' no válida, su formato es: aaaa-mm-dd")
